@@ -83,3 +83,60 @@ df3 <- df_wine %>% mutate(acidity.levels = case_when(pH < 3.11 ~ 'High',
                                               pH >= 3.11 & pH < 3.21 ~ 'Mod_high',
                                               pH >= 3.21 & pH < 3.32 ~ 'Medium',
                                               pH >= 3.32 & pH <=4.010 ~ 'Low'))
+
+#DO WINES WITH HIGHER ALCOHOLIC CONTECT RECEIVER BETTER RATINGS?
+
+df3 %>% select(acidity.levels, quality) %>% 
+  group_by(acidity.levels) %>%
+  summarise(mean_quality = mean(quality))
+
+#Get the median amount of alcohol content
+
+median(df3$alcohol)
+
+#get the mean quality of samples with alcohol content less than the median
+low_alcohol_mean_quality <- mean(df3$quality[df3$alcohol < median(df3$alcohol)])
+
+#get the mean quality of samples with alcohol content more than the median
+high_alcohol_mean_quality <- mean(df3$quality[df3$alcohol >= median(df3$alcohol)])
+
+print(c(low_alcohol_mean_quality, high_alcohol_mean_quality))
+
+#DO SWEETER WINES RECEIVE BETTER RATINGS?
+
+#get the mean quality of samples with residual sugar less than the median
+low_sugar_mean_quality <- mean(df3$quality[df3$residual.sugar < median(df3$residual.sugar)])
+
+#get the mean quality of samples with residual sugar more or equal than the median
+high_sugar_mean_quality <- mean(df3$quality[df3$residual.sugar >= median(df3$residual.sugar)])
+
+print(c(low_sugar_mean_quality, high_sugar_mean_quality))
+
+#PLOTS
+#DO WINES WITH HIGHER ALCOHOLIC CONTENT RECEIVE BETTER RATINGS?
+
+wines_alcohol_quality <- data.frame(Average_Quality_Ratings = c(low_alcohol_mean_quality, high_alcohol_mean_quality), 
+                                    Alcohol_Content = c('Low', 'High'))
+
+ggplot(data = wines_alcohol_quality, aes(y = Average_Quality_Ratings, x = Alcohol_Content)) + 
+  geom_col()
+
+#DO SWEETER WINES RECEIVE HIGHER RATINGS?
+wines_sugar_quality <- data.frame(Average_Quality_Ratings = c(low_sugar_mean_quality, high_sugar_mean_quality),
+                                  Residual_Sugar = c('Low', 'High'))
+
+ggplot(data = wines_sugar_quality, aes(x = Residual_Sugar, y = Average_Quality_Ratings)) +
+  geom_col()
+
+#WHAT LEVELS OF ACIDITY RECEIVE THE HIGHEST AVERAGE RATINGS
+
+wines_acidity_quality <- df3 %>% 
+  group_by(acidity.levels) %>% 
+  summarise(mean_quality = mean(quality))
+
+ggplot(data = wines_acidity_quality, 
+       aes(x = reorder(acidity.levels, desc(mean_quality)), y = mean_quality)) +
+  geom_col() + 
+  coord_cartesian(ylim = c(5.7, 5.9)) +
+  xlab('Acidity Levels')
+
